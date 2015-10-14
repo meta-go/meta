@@ -120,7 +120,11 @@ func (i *EmbeddedImport) populateAST(gtor *astPopulator) {
 }
 
 func (d *VarDecl) populateAST(gtor *astPopulator) {
-	gtor.populateAST(d.Type().(canPopulateAST))
+	var typeAST ast.Expr
+	if d.Type() != nil {
+		gtor.populateAST(d.Type().(canPopulateAST))
+		typeAST = d.Type().AST()
+	}
 	var vals []ast.Expr
 	if d.value != nil {
 		gtor.populateAST(d.value.(canPopulateAST))
@@ -128,8 +132,22 @@ func (d *VarDecl) populateAST(gtor *astPopulator) {
 	}
 	d.ast = &ast.ValueSpec{
 		Names:  []*ast.Ident{ast.NewIdent(d.name)},
-		Type:   d.Type().AST(),
+		Type:   typeAST,
 		Values: vals,
+	}
+}
+
+func (d *ConstDecl) populateAST(gtor *astPopulator) {
+	var typeAST ast.Expr
+	if d.Type() != nil {
+		gtor.populateAST(d.Type().(canPopulateAST))
+		typeAST = d.Type().AST()
+	}
+	gtor.populateAST(d.value.(canPopulateAST))
+	d.ast = &ast.ValueSpec{
+		Names:  []*ast.Ident{ast.NewIdent(d.name)},
+		Type:   typeAST,
+		Values: []ast.Expr{populateExpr(gtor, d.value)},
 	}
 }
 
@@ -401,6 +419,11 @@ func populateDecl(gtor *astPopulator, d Decl) ast.Decl {
 	case *VarDecl:
 		a = &ast.GenDecl{
 			Tok:   token.VAR,
+			Specs: []ast.Spec{v.AST()},
+		}
+	case *ConstDecl:
+		a = &ast.GenDecl{
+			Tok:   token.CONST,
 			Specs: []ast.Spec{v.AST()},
 		}
 	case *TypeDecl:

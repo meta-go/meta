@@ -126,6 +126,17 @@ func (f *File) VarDecls() []*VarDecl {
 	return ret
 }
 
+// ConstDecls returns the constant declarations in this file.
+func (f *File) ConstDecls() []*ConstDecl {
+	var ret []*ConstDecl
+	for _, d := range f.decls {
+		if v, ok := d.(*ConstDecl); ok {
+			ret = append(ret, v)
+		}
+	}
+	return ret
+}
+
 // TypeDecls returns the variable declarations in this file.
 func (f *File) TypeDecls() []*TypeDecl {
 	var ret []*TypeDecl
@@ -137,8 +148,6 @@ func (f *File) TypeDecls() []*TypeDecl {
 	return ret
 }
 
-// TODO: The rest of the decls.
-
 // LookupDecl returns the declaration in this file with the given name. Returns
 // nil if none found.
 func (f *File) LookupDecl(name string) Decl {
@@ -149,8 +158,6 @@ func (f *File) LookupDecl(name string) Decl {
 	}
 	return nil
 }
-
-// TODO: More lookup methods.
 
 // AddImport attaches an import to this file.
 func (f *File) AddImport(i Import) *File {
@@ -201,6 +208,13 @@ func (f *File) AddDecl(d Decl) *File {
 // Var creates a variable declaration (var foo T) and attaches it to this file.
 func (f *File) Var(name string, typ Type, value Expr) *File {
 	f.AddDecl(NewVarDecl(name, typ, value))
+	return f
+}
+
+// Const creates a constant declaration (const foo T) and attaches it to this
+// file.
+func (f *File) Const(name string, typ Type, value Expr) *File {
+	f.AddDecl(NewConstDecl(name, typ, value))
 	return f
 }
 
@@ -408,6 +422,62 @@ func (d *VarDecl) AST() *ast.ValueSpec {
 // Checked returns the corresponding representation of this type as a
 // golang.org/x/tools/go/types data type.
 func (d *VarDecl) Checked() *types.Var {
+	return d.checked
+}
+
+// A ConstDecl is a constant declaration (const foo ...).
+type ConstDecl struct {
+	name  string
+	typ   Type
+	value Expr
+
+	InFile *File
+
+	ast     *ast.ValueSpec
+	checked *types.Const
+}
+
+// NewConstDecl creates a cosntant declaration (const foo ...). The type can
+// be nil.
+func NewConstDecl(name string, typ Type, value Expr) *ConstDecl {
+	return &ConstDecl{name: name, typ: typ, value: value}
+}
+
+// IsDecl marks *ConstDecl as an implementor of Decl for documentation purposes.
+func (d *ConstDecl) IsDecl() {}
+
+// IsStmt marks *ConstDecl as an implementor of Stmt for documentation purposes.
+func (d *ConstDecl) IsStmt() {}
+
+// Name returns the name of the constant.
+func (d *ConstDecl) Name() string {
+	return d.name
+}
+
+// Type returns the type of the constant. It can be nil.
+func (d *ConstDecl) Type() Type {
+	return d.typ
+}
+
+// Value returns the expression which sets the value of the constant.
+func (d *ConstDecl) Value() Expr {
+	return d.value
+}
+
+// SetInFile links this object with a file.
+func (d *ConstDecl) SetInFile(f *File) {
+	d.InFile = f
+}
+
+// AST returns the corresponding representation of this type as a go/ast
+// data type.
+func (d *ConstDecl) AST() *ast.ValueSpec {
+	return d.ast
+}
+
+// Checked returns the corresponding representation of this type as a
+// golang.org/x/tools/go/types data type.
+func (d *ConstDecl) Checked() *types.Const {
 	return d.checked
 }
 

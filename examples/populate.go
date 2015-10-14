@@ -16,6 +16,8 @@ func main() {
 			DiscardedImport("github.com/tcard/valuegraph").
 			QualifiedImport("abc", "github.com/meta-go/meta").
 			Var("myVar", g.Int, nil).
+			Var("myVar2", nil, g.S("abc")).
+			Const("myConst", nil, g.I(123)).
 			Type("myType", g.String).
 			Type("other", g.NamedType("ptrTo")).
 			Type("ptrTo", g.PointerTo(g.Bool)).

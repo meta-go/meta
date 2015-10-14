@@ -30,6 +30,10 @@ func Var(name string, typ meta.Type, value meta.Expr) *meta.VarDecl {
 	return meta.NewVarDecl(name, typ, value)
 }
 
+func Const(name string, typ meta.Type, value meta.Expr) *meta.ConstDecl {
+	return meta.NewConstDecl(name, typ, value)
+}
+
 func Type(name string, typ meta.Type) *meta.TypeDecl {
 	return meta.NewTypeDecl(name, typ)
 }

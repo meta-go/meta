@@ -6,6 +6,9 @@ import _ "github.com/tcard/valuegraph"
 import abc "github.com/meta-go/meta"
 
 var myVar int
+var myVar2 = "abc"
+
+const myConst = 123
 
 type myType string
 type other ptrTo
